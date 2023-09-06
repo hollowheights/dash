@@ -312,7 +312,9 @@ def update_graph(gapsize, PreVolume, Price, MarketCap, Open_PreHigh, start_date,
                                  )
 
 
-    chart_temp = px.scatter(df_f, df_f.Date, df_f['Day1/Gap'])
+    chart_temp = px.scatter(df_f, df_f.Date, df_f['Day1/Gap'],
+                            hover_name="Stock", hover_data=["GapSize", "PreVolume"]
+                            )
 
     #output_backtest = px.scatter(df_f, df_f.Date, df_f['Day1/Gap'])
     output_backtest = Plotter_Stats(df_f)
