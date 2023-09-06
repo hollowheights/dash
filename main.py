@@ -42,7 +42,7 @@ slider_section = html.Div(
                  dbc.Label("PreVolume (M.)", style={'margin-top': '20px'}),
                  dcc.RangeSlider(0.5, 30, value=[1,5], id='Slider_PreVolume', tooltip={"placement": "bottom"}),
                  dbc.Label("Open Price ($ unadjusted)", style={'margin-top': '20px'}),
-                 dcc.RangeSlider(1, 40, value=[1,6], id='Slider_OpenUnadjusted', tooltip={"placement": "bottom"}),
+                 dcc.RangeSlider(0, 50, value=[0,6], id='Slider_OpenUnadjusted', tooltip={"placement": "bottom"}),
                  dbc.Label("MarketCap (M.)", style={'margin-top': '20px'}),
                  dcc.RangeSlider(0, 200, value=[10, 100], id='Slider_MarketCap', tooltip={"placement": "bottom"}),
                  dbc.Label("Open/PreHigh (Percentile)", style={'margin-top': '20px'}),
