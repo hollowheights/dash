@@ -86,8 +86,9 @@ right_side_backtest = dbc.Container([
 tabs_section = dbc.Tabs([
                     dbc.Tab(right_side_overview, label="Overview"),
                     dbc.Tab([output_basic_stats, right_side_backtest], label="Backtest"),
-                    dbc.Tab(html.P("tab2 text"), label="Deep dive"),
-                    dbc.Tab(html.P("tab2 text"), label="Heatmap")
+                    dbc.Tab(html.P("Coming soon..."), label="Deep dive"),
+                    dbc.Tab(html.P("Coming soon..."), label="Heatmap"),
+                    dbc.Tab(html.P("Coming soon..."), label="Time of day")
 ])
 
 
@@ -241,8 +242,8 @@ def Plotter_Stats(df_f, long_short='Short', FeeWin=0.01, FeeLoss=0.02):  # now i
             # columnorder = [0,1],
             columnwidth=[100, 200],
             header=dict(
-                values=[['<b>Basic metrics</b><br>As of: June 1st 2023'],
-                        ['<b>Winrate (%)</b>'], ['<b>EV (R)</b>'], ['<b>PF (R)</b>']],
+                values=[['<b>Stop loss size<br> Multiples of gap size'],
+                        ['<b>Win rate (%)</b>'], ['<b>EV (gap mult.)</b>'], ['<b>Profit factor</b>']],
                 line_color='darkslategray',
                 fill_color='royalblue',
                 align=['left', 'center'],
