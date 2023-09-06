@@ -141,6 +141,8 @@ def generate_basic_stats(df_f):
     largest_fade_name = df[df['Day1'] == df['Day1'].min()]['Stock']
     largest_fade_date = df[df['Day1'] == df['Day1'].min()]['Date']
 
+    percentage_break_PM_high = (df_f.loc[df_f['PreBreakTime'].notna(), 'PreBreakTime'].count() / setups_count) * 100
+
 
     table_body = [html.Tbody([
         html.Tr([html.Td("Number of setups"), html.Td(setups_count)]),
@@ -148,6 +150,8 @@ def generate_basic_stats(df_f):
         html.Tr([html.Td("Number of days closing green"), html.Td(green_close_count)]),
         html.Tr([html.Td("Percentage of days closing red"), html.Td(round(red_close_percentage, 2))]),
         html.Tr([html.Td("Percentage of days closing green"), html.Td(round(green_close_percentage, 2))]),
+
+        html.Tr([html.Td("Percentage of days breaking PM-high"), html.Td(round(percentage_break_PM_high, 2))]),
 
         html.Tr([html.Td("Largest fade (Gap multiples)"), html.Td(round(largest_fade, 2))]),
         html.Tr([html.Td("Largest fade ticker"), html.Td(largest_fade_name)]),
