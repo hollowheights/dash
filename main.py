@@ -80,7 +80,7 @@ right_side_overview = dbc.Container([
 
 right_side_backtest = dbc.Container([
                         output_backtest
-])
+                      ], style={"margin-left" : "0%", "padding-left" : "0%"})
 
 # tabs section
 tabs_section = dbc.Tabs([
@@ -240,9 +240,9 @@ def Plotter_Stats(df_f, long_short='Short', FeeWin=0.01, FeeLoss=0.02):  # now i
     fig = go.Figure(
         data=[go.Table(
             # columnorder = [0,1],
-            columnwidth=[100, 200],
+            columnwidth=[150, 250],
             header=dict(
-                values=[['<b>Stop loss size<br> Multiples of gap size'],
+                values=[['<b>Stop loss <br>Multiples of gap size'],
                         ['<b>Win rate (%)</b>'], ['<b>EV (gap mult.)</b>'], ['<b>Profit factor</b>']],
                 line_color='darkslategray',
                 fill_color='royalblue',
