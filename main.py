@@ -22,6 +22,7 @@ df.MarketCap = (df.MarketCap / 1_000_000).round(2)
 
 # Initialize the app
 app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP]) #COSMO
+app.title = "FadeFinder"
 server = app.server
 
 # --- Elements for the layout ---
