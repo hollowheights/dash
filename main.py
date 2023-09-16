@@ -35,7 +35,17 @@ output_basic_stats = dbc.Container(id='output_basic_stats', style={'margin-top' 
 
 output_backtest = dcc.Graph(figure={}, id='output_backtest', config={'displaylogo': False})
 
-# Sliders section
+output_time_of_day = dcc.Graph(figure={}, id='output_time_of_day')
+
+
+# --- Sliders section ---
+
+#define first the weekday feature
+all_weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+#day_options = [{'label': day, 'value': day} for day in all_weekdays]
+day_options = [{'label': day, 'value': index} for index, day in enumerate(all_weekdays)]
+#day_options = [{'label' : 'Monday', 'value' : 0}]
+
 slider_section = html.Div(
             [html.Div(
                 [dbc.Label("GapSize (%)", style={'margin-top': '20px'}),
@@ -43,20 +53,24 @@ slider_section = html.Div(
                  dbc.Label("PreVolume (M.)", style={'margin-top': '20px'}),
                  dcc.RangeSlider(0.5, 30, value=[1,5], id='Slider_PreVolume', tooltip={"placement": "bottom"}),
                  dbc.Label("Open Price ($ unadjusted)", style={'margin-top': '20px'}),
-                 dcc.RangeSlider(0, 50, value=[0,6], id='Slider_OpenUnadjusted', tooltip={"placement": "bottom"}),
+                 dcc.RangeSlider(0, 50, value=[0,6], step=0.1, id='Slider_OpenUnadjusted', tooltip={"placement": "bottom"}),
                  dbc.Label("MarketCap (M.)", style={'margin-top': '20px'}),
-                 dcc.RangeSlider(0, 200, value=[10, 100], id='Slider_MarketCap', tooltip={"placement": "bottom"}),
+                 dcc.RangeSlider(0, 800, value=[0, 100], id='Slider_MarketCap', tooltip={"placement": "bottom"}),
                  dbc.Label("Open/PreHigh (Percentile)", style={'margin-top': '20px'}),
                  dcc.RangeSlider(0, 1, 0.1, value=[0.4, 1], id='Slider_Open/PreHigh', tooltip={"placement": "bottom"}),
                  dbc.Label("Time period", style={'margin-top': '20px'}),
-                 html.Br(),
-                 dcc.DatePickerRange(id="picker_DateRange", start_date=date(2018, 1, 1), end_date=date(2023, 7, 1), display_format='DD-MMM-YYYY')
+                 html.Br(),  #necesessary to force a line break here
+                 dcc.DatePickerRange(id="picker_DateRange", start_date=date(2018, 1, 1), end_date=date(2023, 7, 1), display_format='DD-MMM-YYYY'),
+                 html.Br(),  # necesessary to force a line break here
+                 dbc.Label("Weekdays", style={'margin-top': '20px'}),
+                 dcc.Dropdown(id='weekday_selector', options = day_options, multi=True, value=[0]),
                  ],
                 style={'width': '95%'}
             )],
             style={
                 'display': 'flex',
                 'justify-content': 'center'})
+
 
 
 # information box - definitions of measures
@@ -82,13 +96,17 @@ right_side_backtest = dbc.Container([
                         output_backtest
                       ], style={"margin-left" : "0%", "padding-left" : "0%"})
 
+right_side_time_of_day = dbc.Container([
+                        output_time_of_day
+                      ], style={"margin-left" : "0%", "padding-left" : "0%"})
+
 # tabs section
 tabs_section = dbc.Tabs([
                     dbc.Tab(right_side_overview, label="Overview"),
                     dbc.Tab([output_basic_stats, right_side_backtest], label="Backtest"),
+                    dbc.Tab(output_time_of_day, label="Time of day"),
                     dbc.Tab(html.P("Coming soon..."), label="Deep dive"),
                     dbc.Tab(html.P("Coming soon..."), label="Heatmap"),
-                    dbc.Tab(html.P("Coming soon..."), label="Time of day")
 ])
 
 
@@ -186,7 +204,8 @@ def Plotter_Stats(df_f, long_short='Short', FeeWin=0.01, FeeLoss=0.02):  # now i
         if long_short == 'Short':
             profit = ((df_f["OpenUnadjusted"] - df_f["CloseUnadjusted"]) - (df_f["OpenUnadjusted"] * FeeWin)) / risk
             loss = (-risk - (df_f["OpenUnadjusted"] * FeeLoss)) / risk
-            df_f[result_column_title] = np.where(df_f['MaxGain/Gap'] < stopsize, profit, loss)
+            #df_f[result_column_title] = np.where(df_f['MaxGain/Gap'] < stopsize, profit, loss)
+            df_f.loc[:, result_column_title] = np.where(df_f['MaxGain/Gap'] < stopsize, profit, loss)
 
         elif long_short == 'Long':
             profit = ((df_f["CloseUnadjusted"] - df_f["OpenUnadjusted"]) - (df_f["OpenUnadjusted"] * FeeWin)) / risk
@@ -260,12 +279,39 @@ def Plotter_Stats(df_f, long_short='Short', FeeWin=0.01, FeeLoss=0.02):  # now i
 
     return fig
 
+def Plotter_TOD(df_f):
+
+    fig = go.Figure()
+
+    x_values = ["9:35", "9:45", "10:00", "11:00", "13:00", "15:00", "15:30", "16:00"]
+
+    # add traces med loop [gammel metode i MISC]
+    fig.add_trace(go.Scatter(name="Time of day plot",
+                             x=x_values,
+                             y=[df_f["Change935/Gap"].mean(),
+                                df_f["Change945/Gap"].mean(),
+                                df_f["Change1000/Gap"].mean(),
+                                df_f["Change1100/Gap"].mean(),
+                                df_f["Change1300/Gap"].mean(),
+                                df_f["Change1500/Gap"].mean(),
+                                df_f["Change1530/Gap"].mean(),
+                                df_f["Change1600/Gap"].mean()]))
+
+    fig.update_layout(title="Change during market hours for all (filtered) gapper instances",
+                      xaxis_title="Time of day (US Eastern)",
+                      yaxis_title="Average change relative to gap size",
+                      height=600)
+
+    return fig
+
+
 # Define the callback controlling the interactive features
 @app.callback(
     Output(component_id='output-figure', component_property='children'),
     Output(component_id='output-figure2', component_property='figure'),
     Output(component_id='output_backtest', component_property='figure'),
     Output(component_id='output_basic_stats', component_property='children'),
+    Output(component_id='output_time_of_day', component_property='figure'),
 
     Input(component_id='Slider_GapSize', component_property='value'),
     Input(component_id='Slider_PreVolume', component_property='value'),
@@ -273,11 +319,11 @@ def Plotter_Stats(df_f, long_short='Short', FeeWin=0.01, FeeLoss=0.02):  # now i
     Input(component_id='Slider_MarketCap', component_property='value'),
     Input(component_id='Slider_Open/PreHigh', component_property='value'),
     Input(component_id='picker_DateRange', component_property='start_date'),
-    Input(component_id='picker_DateRange', component_property='end_date')
-    #Input(component_id='Slider_Weekday', component_property='value'),
+    Input(component_id='picker_DateRange', component_property='end_date'),
+    Input(component_id='weekday_selector', component_property='value'),
 )
 
-def update_graph(gapsize, PreVolume, Price, MarketCap, Open_PreHigh, start_date, end_date):
+def update_graph(gapsize, PreVolume, Price, MarketCap, Open_PreHigh, start_date, end_date, weekday):
 
     #DateRange values need parsing - comes in as string format
     start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
@@ -289,11 +335,11 @@ def update_graph(gapsize, PreVolume, Price, MarketCap, Open_PreHigh, start_date,
           ( (df['OpenUnadjusted'] > Price[0]) & (df['OpenUnadjusted'] < Price[1])) &
           ( (df['MarketCap'] >= MarketCap[0]) & (df['MarketCap'] <= MarketCap[1])) &
           ( (df['Open/PreHigh'] >= Open_PreHigh[0]) & (df['Open/PreHigh'] <= Open_PreHigh[1])) &
-          #(df['Weekday'].isin(Weekday)) &
+          (df['Weekday'].isin(weekday)) &
           ( (df['Date'] >= start_date) & (df['Date'] <= end_date) )
           ]
 
-    df_f = df_f[['Date','Stock','MarketCap','GapSize','PreVolume','Weekday','Volume', 'Day1/Gap', 'MaxGain/Gap', 'PreBreakTime', 'GapSizeAbs', 'OpenUnadjusted', 'CloseUnadjusted']]
+    #df_f = df_f[['Date','Stock','MarketCap','GapSize','PreVolume','Weekday','Volume', 'Day1/Gap', 'MaxGain/Gap', 'PreBreakTime', 'GapSizeAbs', 'OpenUnadjusted', 'CloseUnadjusted']]
 
     df_to_present = df_f[['Date', 'Stock', 'GapSize', 'PreVolume', 'MarketCap', 'Day1/Gap']]
 
@@ -321,7 +367,9 @@ def update_graph(gapsize, PreVolume, Price, MarketCap, Open_PreHigh, start_date,
 
     output_basic_stats = generate_basic_stats(df_f)
 
-    return overview_table, chart_temp, output_backtest, output_basic_stats
+    output_time_of_day = Plotter_TOD(df_f)
+
+    return overview_table, chart_temp, output_backtest, output_basic_stats, output_time_of_day
 
 
 # Run the app
